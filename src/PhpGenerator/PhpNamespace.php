@@ -154,7 +154,7 @@ final class PhpNamespace
 		asort($this->aliases[$of]);
 		return array_filter(
 			$this->aliases[$of],
-			function ($name, $alias) { return strcasecmp(($this->name ? $this->name . '\\' : '') . $alias, $name); },
+			fn($name, $alias) => strcasecmp(($this->name ? $this->name . '\\' : '') . $alias, $name),
 			ARRAY_FILTER_USE_BOTH,
 		);
 	}
@@ -169,7 +169,7 @@ final class PhpNamespace
 
 	public function simplifyType(string $type, string $of = self::NAME_NORMAL): string
 	{
-		return preg_replace_callback('~[\w\x7f-\xff\\\\]+~', function ($m) use ($of) { return $this->simplifyName($m[0], $of); }, $type);
+		return preg_replace_callback('~[\w\x7f-\xff\\\\]+~', fn($m) => $this->simplifyName($m[0], $of), $type);
 	}
 
 
