@@ -18,7 +18,7 @@ Assert::same('foo\A', $namespace->simplifyName('foo\A'));
 $namespace->addUse('Bar\C');
 
 Assert::same('Bar', $namespace->simplifyName('Bar'));
-Assert::same('C', $namespace->simplifyName('Bar\C'));
+Assert::same('C', $namespace->simplifyName('bar\C'));
 Assert::same('C\D', $namespace->simplifyName('Bar\C\D'));
 
 foreach (['String', 'string', 'int', 'float', 'bool', 'array', 'callable', 'self', 'parent', ''] as $type) {
@@ -27,9 +27,9 @@ foreach (['String', 'string', 'int', 'float', 'bool', 'array', 'callable', 'self
 
 $namespace->addUseFunction('Foo\a');
 
-Assert::same('Bar\c', $namespace->simplifyName('Bar\c', $namespace::NAME_FUNCTION));
-Assert::same('a', $namespace->simplifyName('Foo\A', $namespace::NAME_FUNCTION));
-Assert::same('Foo\a\b', $namespace->simplifyName('Foo\a\b', $namespace::NAME_FUNCTION));
+Assert::same('bar\c', $namespace->simplifyName('bar\c', $namespace::NAME_FUNCTION));
+Assert::same('a', $namespace->simplifyName('foo\A', $namespace::NAME_FUNCTION));
+Assert::same('foo\a\b', $namespace->simplifyName('foo\a\b', $namespace::NAME_FUNCTION));
 
 foreach (['String', 'string', 'int', 'float', 'bool', 'array', 'callable', 'self', 'parent', ''] as $type) {
 	Assert::same($type, $namespace->simplifyName($type, $namespace::NAME_FUNCTION));
@@ -38,13 +38,13 @@ foreach (['String', 'string', 'int', 'float', 'bool', 'array', 'callable', 'self
 $namespace->addUseFunction('Bar\c');
 
 Assert::same('Bar', $namespace->simplifyName('Bar', $namespace::NAME_FUNCTION));
-Assert::same('c', $namespace->simplifyName('Bar\c', $namespace::NAME_FUNCTION));
+Assert::same('c', $namespace->simplifyName('bar\c', $namespace::NAME_FUNCTION));
 Assert::same('C\d', $namespace->simplifyName('Bar\C\d', $namespace::NAME_FUNCTION));
 
 $namespace->addUseConstant('Bar\c');
 
 Assert::same('Bar', $namespace->simplifyName('Bar', $namespace::NAME_CONSTANT));
-Assert::same('c', $namespace->simplifyName('Bar\c', $namespace::NAME_CONSTANT));
+Assert::same('c', $namespace->simplifyName('bar\c', $namespace::NAME_CONSTANT));
 Assert::same('C\d', $namespace->simplifyName('Bar\C\d', $namespace::NAME_CONSTANT));
 
 
@@ -78,16 +78,16 @@ Assert::same('žluťoučký', $namespace->simplifyType('foo\žluťoučký'));
 
 $namespace->addUseFunction('Foo\a');
 
-Assert::same('\Bar\c', $namespace->simplifyName('Bar\c', $namespace::NAME_FUNCTION));
-Assert::same('a', $namespace->simplifyName('Foo\a', $namespace::NAME_FUNCTION));
-Assert::same('C\b', $namespace->simplifyName('Foo\C\b', $namespace::NAME_FUNCTION));
-Assert::same('a\b', $namespace->simplifyName('Foo\a\b', $namespace::NAME_FUNCTION));
+Assert::same('\bar\c', $namespace->simplifyName('bar\c', $namespace::NAME_FUNCTION));
+Assert::same('a', $namespace->simplifyName('foo\A', $namespace::NAME_FUNCTION));
+Assert::same('C\b', $namespace->simplifyName('foo\C\b', $namespace::NAME_FUNCTION));
+Assert::same('a\b', $namespace->simplifyName('foo\a\b', $namespace::NAME_FUNCTION));
 
 $namespace->addUseFunction('Bar\c');
 
 Assert::same('\Bar', $namespace->simplifyName('Bar', $namespace::NAME_FUNCTION));
-Assert::same('c', $namespace->simplifyName('Bar\c', $namespace::NAME_FUNCTION));
-Assert::same('C\d', $namespace->simplifyName('Bar\c\d', $namespace::NAME_FUNCTION));
+Assert::same('c', $namespace->simplifyName('bar\c', $namespace::NAME_FUNCTION));
+Assert::same('C\d', $namespace->simplifyName('Bar\C\d', $namespace::NAME_FUNCTION));
 
 
 // duplicity
@@ -98,10 +98,18 @@ Assert::exception(function () use ($namespace) {
 	$namespace->addTrait('C');
 }, Nette\InvalidStateException::class, "Alias 'C' used already for 'Bar\\C', cannot use for 'Foo\\C'.");
 
+Assert::exception(function () use ($namespace) {
+	$namespace->addTrait('c');
+}, Nette\InvalidStateException::class, "Alias 'c' used already for 'Bar\\C', cannot use for 'Foo\\c'.");
+
 $namespace->addClass('B');
 Assert::exception(function () use ($namespace) {
 	$namespace->addUse('Lorem\B', 'B');
 }, Nette\InvalidStateException::class, "Alias 'B' used already for 'Foo\\B', cannot use for 'Lorem\\B'.");
+
+Assert::exception(function () use ($namespace) {
+	$namespace->addUse('lorem\b', 'b');
+}, Nette\InvalidStateException::class, "Alias 'b' used already for 'Foo\\B', cannot use for 'lorem\\b'.");
 
 Assert::same(['C' => 'Bar\\C'], $namespace->getUses());
 

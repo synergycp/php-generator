@@ -11,7 +11,6 @@ namespace Nette\PhpGenerator;
 
 use Nette;
 use Nette\InvalidStateException;
-use Nette\Utils\Strings;
 
 
 /**
@@ -107,7 +106,7 @@ final class PhpNamespace
 		}
 
 		$name = ltrim($name, '\\');
-		$uses = &$this->uses[$of];
+		$uses = array_change_key_case($this->uses[$of]);
 		if ($alias === null && $this->name === Helpers::extractNamespace($name)) {
 			$alias = Helpers::extractShortName($name);
 		}
@@ -117,16 +116,16 @@ final class PhpNamespace
 			do {
 				$alias = $base . $counter;
 				$counter++;
-			} while (isset($uses[$alias]) && $uses[$alias] !== $name);
+			} while (($used = $uses[strtolower($alias)] ?? null) && strcasecmp($used, $name) !== 0);
 
-		} elseif (isset($uses[$alias]) && $uses[$alias] !== $name) {
+		} elseif (($used = $uses[strtolower($alias)] ?? null) && strcasecmp($used, $name) !== 0) {
 			throw new InvalidStateException(
-				"Alias '$alias' used already for '{$uses[$alias]}', cannot use for '$name'."
+				"Alias '$alias' used already for '{$used}', cannot use for '$name'."
 			);
 		}
 
-		$uses[$alias] = $name;
-		asort($uses);
+		$this->uses[$of][$alias] = $name;
+		asort($this->uses[$of]);
 		return $this;
 	}
 
@@ -191,13 +190,12 @@ final class PhpNamespace
 			return $this->simplifyName(Helpers::extractNamespace($name) . '\\') . Helpers::extractShortName($name);
 		}
 
-		$lower = strtolower($name);
-		$res = Strings::startsWith($lower, strtolower($this->name) . '\\')
+		$res = self::startsWith($name, $this->name . '\\')
 			? substr($name, strlen($this->name) + 1)
 			: null;
 
 		foreach ($this->uses[$of] as $alias => $original) {
-			if (Strings::startsWith($lower . '\\', strtolower($original) . '\\')) {
+			if (self::startsWith($name . '\\', $original . '\\')) {
 				$short = $alias . substr($name, strlen($original));
 				if (!isset($res) || strlen($res) > strlen($short)) {
 					$res = $short;
@@ -277,6 +275,12 @@ final class PhpNamespace
 			}
 		}
 		return null;
+	}
+
+
+	public static function startsWith(string $a, string $b): bool
+	{
+		return strncasecmp($a, $b, strlen($b)) === 0;
 	}
 
 
