@@ -103,16 +103,12 @@ final class PhpNamespace
 
 		$name = ltrim($name, '\\');
 		if ($alias === null) {
-			$path = explode('\\', $name);
+			$base = Helpers::extractShortName($name);
 			$counter = null;
 			do {
-				if (empty($path)) {
-					$counter++;
-				} else {
-					$alias = array_pop($path) . $alias;
-				}
-			} while (isset($this->uses[$alias . $counter]) && $this->uses[$alias . $counter] !== $name);
-			$alias .= $counter;
+				$alias = $base . $counter;
+				$counter++;
+			} while (isset($this->uses[$alias]) && $this->uses[$alias] !== $name);
 
 		} elseif (isset($this->uses[$alias]) && $this->uses[$alias] !== $name) {
 			throw new InvalidStateException(

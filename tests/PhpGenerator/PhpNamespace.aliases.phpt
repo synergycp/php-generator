@@ -78,7 +78,7 @@ $namespace = new PhpNamespace('');
 $namespace->addUse('C');
 Assert::same('C', $namespace->simplifyName('C'));
 $namespace->addUse('Bar\C');
-Assert::same('BarC', $namespace->simplifyName('Bar\C'));
+Assert::same('C1', $namespace->simplifyName('Bar\C'));
 
 $namespace = new PhpNamespace('');
 $namespace->addUse('Bar\C');
@@ -90,16 +90,16 @@ $namespace->addClass('A');
 $namespace->addUse('A');
 Assert::same('A', $namespace->simplifyName('A'));
 $namespace->addUse('Bar\A');
-Assert::same('BarA', $namespace->simplifyName('Bar\A'));
+Assert::same('A1', $namespace->simplifyName('Bar\A'));
 
 $namespace = new PhpNamespace('Foo');
 $namespace->addUse('C');
 Assert::same('C', $namespace->simplifyName('C'));
 $namespace->addUse('Bar\C');
-Assert::same('BarC', $namespace->simplifyName('Bar\C'));
+Assert::same('C1', $namespace->simplifyName('Bar\C'));
 Assert::same('\Foo\C', $namespace->simplifyName('Foo\C'));
 $namespace->addUse('Foo\C');
-Assert::same('FooC', $namespace->simplifyName('Foo\C'));
+Assert::same('C2', $namespace->simplifyName('Foo\C'));
 
 $namespace = new PhpNamespace('Foo');
 $namespace->addUse('Bar\C');
@@ -111,6 +111,6 @@ $namespace->addClass('A');
 $namespace->addUse('A');
 Assert::same('A1', $namespace->simplifyName('A'));
 $namespace->addUse('Bar\A');
-Assert::same('BarA', $namespace->simplifyName('Bar\A'));
+Assert::same('A2', $namespace->simplifyName('Bar\A'));
 $namespace->addUse('Foo\A');
 Assert::same('A', $namespace->simplifyName('Foo\A'));
