@@ -65,10 +65,18 @@ Assert::exception(function () use ($namespace) {
 	$namespace->addTrait('C');
 }, Nette\InvalidStateException::class, "Alias 'C' used already for 'Bar\\C', cannot use for 'Foo\\C'.");
 
+Assert::exception(function () use ($namespace) {
+	$namespace->addTrait('c');
+}, Nette\InvalidStateException::class, "Alias 'c' used already for 'Bar\\C', cannot use for 'Foo\\c'.");
+
 $namespace->addClass('B');
 Assert::exception(function () use ($namespace) {
 	$namespace->addUse('Lorem\B', 'B');
 }, Nette\InvalidStateException::class, "Alias 'B' used already for 'Foo\\B', cannot use for 'Lorem\\B'.");
+
+Assert::exception(function () use ($namespace) {
+	$namespace->addUse('lorem\b', 'b');
+}, Nette\InvalidStateException::class, "Alias 'b' used already for 'Foo\\B', cannot use for 'lorem\\b'.");
 
 Assert::same(['C' => 'Bar\\C', 'B' => 'Foo\\B'], $namespace->getUses());
 

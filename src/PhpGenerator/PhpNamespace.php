@@ -11,7 +11,6 @@ namespace Nette\PhpGenerator;
 
 use Nette;
 use Nette\InvalidStateException;
-use Nette\Utils\Strings;
 
 
 /**
@@ -39,6 +38,9 @@ final class PhpNamespace
 
 	/** @var string[] */
 	private $uses = [];
+
+	/** @var string[] */
+	private $lowerUses = [];
 
 	/** @var ClassType[] */
 	private $classes = [];
@@ -108,16 +110,16 @@ final class PhpNamespace
 			do {
 				$alias = $base . $counter;
 				$counter++;
-			} while (isset($this->uses[$alias]) && $this->uses[$alias] !== $name);
+			} while (($used = $this->lowerUses[strtolower($alias)] ?? null) && strcasecmp($used, $name) !== 0);
 
-		} elseif (isset($this->uses[$alias]) && $this->uses[$alias] !== $name) {
+		} elseif (($used = $this->lowerUses[strtolower($alias)] ?? null) && strcasecmp($used, $name) !== 0) {
 			throw new InvalidStateException(
-				"Alias '$alias' used already for '{$this->uses[$alias]}', cannot use for '$name'."
+				"Alias '$alias' used already for '{$used}', cannot use for '$name'."
 			);
 		}
 
 		$aliasOut = $alias;
-		$this->uses[$alias] = $name;
+		$this->uses[$alias] = $this->lowerUses[strtolower($alias)] = $name;
 		asort($this->uses);
 		return $this;
 	}
@@ -149,15 +151,14 @@ final class PhpNamespace
 			return $name;
 		}
 		$name = ltrim($name, '\\');
-		$lower = strtolower($name);
-		$res = Strings::startsWith($lower, strtolower($this->name) . '\\')
+		$res = self::startsWith($name, $this->name . '\\')
 			&& ($short = substr($name, strlen($this->name) + 1))
-			&& !isset($this->uses[explode('\\', $short)[0]])
+			&& !isset($this->lowerUses[strtolower(explode('\\', $short)[0])])
 			? $short
 			: null;
 
 		foreach ($this->uses as $alias => $original) {
-			if (Strings::startsWith($lower . '\\', strtolower($original) . '\\')) {
+			if (self::startsWith($name . '\\', $original . '\\')) {
 				$short = $alias . substr($name, strlen($original));
 				if (!isset($res) || strlen($res) > strlen($short)) {
 					$res = $short;
@@ -224,6 +225,12 @@ final class PhpNamespace
 	public function getFunctions(): array
 	{
 		return $this->functions;
+	}
+
+
+	public static function startsWith(string $a, string $b): bool
+	{
+		return strncasecmp($a, $b, strlen($b)) === 0;
 	}
 
 
