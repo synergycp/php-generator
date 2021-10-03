@@ -92,7 +92,7 @@ final class PhpNamespace
 	 * @throws InvalidStateException
 	 * @return static
 	 */
-	public function addUse(string $name, string $alias = null, string &$aliasOut = null): self
+	public function addUse(string $name, string $alias = null): self
 	{
 		if (
 			!Helpers::isNamespaceIdentifier($name, true)
@@ -118,7 +118,6 @@ final class PhpNamespace
 			);
 		}
 
-		$aliasOut = $alias;
 		$this->uses[$alias] = $this->lowerUses[strtolower($alias)] = $name;
 		asort($this->uses);
 		return $this;
