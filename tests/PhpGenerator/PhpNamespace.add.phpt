@@ -15,6 +15,7 @@ Assert::exception(function () {
 
 
 $namespace = (new PhpNamespace('Foo'))
+	->add($classA = new ClassType('a'))
 	->add($classA = new ClassType('A'))
 	->add($classB = new ClassType('B', new PhpNamespace('X')));
 

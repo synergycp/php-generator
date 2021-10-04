@@ -217,6 +217,7 @@ final class PhpNamespace
 			throw new Nette\InvalidArgumentException('Class does not have a name.');
 		}
 		$this->addUse($this->name . '\\' . $name);
+		unset($this->classes[self::findKey($this->classes, $name)]);
 		$this->classes[$name] = $class;
 		return $this;
 	}
@@ -249,6 +250,7 @@ final class PhpNamespace
 
 	public function addFunction(string $name): GlobalFunction
 	{
+		unset($this->functions[self::findKey($this->functions, $name)]);
 		return $this->functions[$name] = new GlobalFunction($name);
 	}
 
@@ -264,6 +266,17 @@ final class PhpNamespace
 	public function getFunctions(): array
 	{
 		return $this->functions;
+	}
+
+
+	private static function findKey(array &$arr, string $key): ?string
+	{
+		foreach ($arr as $k => $foo) {
+			if (strcasecmp($key, $k) === 0) {
+				return $k;
+			}
+		}
+		return null;
 	}
 
 

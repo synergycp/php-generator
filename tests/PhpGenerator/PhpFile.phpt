@@ -80,6 +80,8 @@ $file->addClass('H');
 
 $file->addClass('FooBar\I');
 
+$file->addFunction('F1');
+
 $file->addFunction('f1')
 	->setBody('return 1;');
 
