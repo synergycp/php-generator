@@ -46,7 +46,6 @@ $namespace->addUse('Foo');
 Assert::same('B', $namespace->simplifyName('Foo\B'));
 
 $namespace->addUse('Bar\C');
-Assert::same(['C' => 'Bar\C', 'Foo' => 'Foo'], $namespace->getUses());
 Assert::same('Foo\C', $namespace->simplifyName('Foo\C'));
 
 Assert::same('\Bar', $namespace->simplifyName('Bar'));
@@ -78,7 +77,7 @@ Assert::exception(function () use ($namespace) {
 	$namespace->addUse('lorem\b', 'b');
 }, Nette\InvalidStateException::class, "Alias 'b' used already for 'Foo\\B', cannot use for 'lorem\\b'.");
 
-Assert::same(['C' => 'Bar\\C', 'B' => 'Foo\\B'], $namespace->getUses());
+Assert::same(['C' => 'Bar\\C'], $namespace->getUses());
 
 
 // alias generation

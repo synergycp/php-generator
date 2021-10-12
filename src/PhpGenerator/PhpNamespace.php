@@ -127,7 +127,14 @@ final class PhpNamespace
 	/** @return string[] */
 	public function getUses(): array
 	{
-		return $this->uses;
+		$prefix = $this->name ? $this->name . '\\' : '';
+		$res = [];
+		foreach ($this->uses as $alias => $original) {
+			if ($prefix . $alias !== $original) {
+				$res[$alias] = $original;
+			}
+		}
+		return $res;
 	}
 
 
