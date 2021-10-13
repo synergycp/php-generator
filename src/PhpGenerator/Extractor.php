@@ -213,10 +213,13 @@ final class Extractor
 
 	private function addUseToNamespace(Node\Stmt\Use_ $node, PhpNamespace $namespace): void
 	{
-		if ($node->type === $node::TYPE_NORMAL) {
-			foreach ($node->uses as $use) {
-				$namespace->addUse($use->name->toString(), $use->alias ? $use->alias->toString() : null);
-			}
+		$type = [
+			$node::TYPE_NORMAL => PhpNamespace::NAME_NORMAL,
+			$node::TYPE_FUNCTION => PhpNamespace::NAME_FUNCTION,
+			$node::TYPE_CONSTANT => PhpNamespace::NAME_CONSTANT,
+		][$node->type];
+		foreach ($node->uses as $use) {
+			$namespace->addUse($use->name->toString(), $use->alias ? $use->alias->toString() : null, $type);
 		}
 	}
 

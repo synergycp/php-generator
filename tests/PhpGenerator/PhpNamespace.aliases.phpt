@@ -25,6 +25,17 @@ foreach (['String', 'string', 'int', 'float', 'bool', 'array', 'callable', 'self
 	Assert::same($type, $namespace->simplifyName($type));
 }
 
+$namespace->addUseFunction('Bar\c');
+
+Assert::same('Bar', $namespace->simplifyName('Bar', $namespace::NAME_FUNCTION));
+Assert::same('c', $namespace->simplifyName('bar\c', $namespace::NAME_FUNCTION));
+Assert::same('c\d', $namespace->simplifyName('Bar\C\d', $namespace::NAME_FUNCTION));
+
+foreach (['String', 'string', 'int', 'float', 'bool', 'array', 'callable', 'self', 'parent', ''] as $type) {
+	Assert::same($type, $namespace->simplifyName($type, $namespace::NAME_FUNCTION));
+}
+
+
 
 // namespace
 $namespace = new PhpNamespace('Foo');
