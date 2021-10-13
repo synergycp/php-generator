@@ -82,9 +82,8 @@ Assert::same('BarC', $namespace->simplifyName('Bar\C'));
 
 $namespace = new PhpNamespace('');
 $namespace->addUse('Bar\C');
-Assert::exception(function () use ($namespace) {
-	$namespace->addUse('C');
-}, Nette\InvalidStateException::class, "Alias 'C' used already for 'Bar\\C', cannot use for 'C'.");
+$namespace->addUse('C');
+Assert::same('C1', $namespace->simplifyName('C'));
 
 $namespace = new PhpNamespace('');
 $namespace->addClass('A');
@@ -99,9 +98,8 @@ Assert::same('C', $namespace->simplifyName('C'));
 $namespace->addUse('Bar\C');
 Assert::same('BarC', $namespace->simplifyName('Bar\C'));
 Assert::same('C', $namespace->simplifyName('Foo\C'));
-Assert::exception(function () use ($namespace) {
-	$namespace->addUse('Foo\C');
-}, Nette\InvalidStateException::class, "Alias 'C' used already for 'C', cannot use for 'Foo\\C'.");
+$namespace->addUse('Foo\C');
+Assert::same('C', $namespace->simplifyName('Foo\C'));
 
 $namespace = new PhpNamespace('Foo');
 $namespace->addUse('Bar\C');

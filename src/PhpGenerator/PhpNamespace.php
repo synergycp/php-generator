@@ -102,9 +102,6 @@ final class PhpNamespace
 		}
 
 		$name = ltrim($name, '\\');
-		if ($alias === null && $this->name === Helpers::extractNamespace($name)) {
-			$alias = Helpers::extractShortName($name);
-		}
 		if ($alias === null) {
 			$path = explode('\\', $name);
 			$counter = null;
@@ -181,7 +178,7 @@ final class PhpNamespace
 		if ($name === null) {
 			throw new Nette\InvalidArgumentException('Class does not have a name.');
 		}
-		$this->addUse($this->name . '\\' . $name);
+		$this->addUse($this->name . '\\' . $name, $name);
 		$this->classes[$name] = $class;
 		return $this;
 	}
