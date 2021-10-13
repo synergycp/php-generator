@@ -37,8 +37,12 @@ final class PhpNamespace
 	/** @var bool */
 	private $bracketedSyntax = false;
 
-	/** @var string[] */
-	private $uses = [];
+	/** @var string[][] */
+	private $uses = [
+		self::NAME_NORMAL => [],
+		self::NAME_FUNCTION => [],
+		self::NAME_CONSTANT => [],
+	];
 
 	/** @var ClassType[] */
 	private $classes = [];
@@ -90,18 +94,20 @@ final class PhpNamespace
 	 * @throws InvalidStateException
 	 * @return static
 	 */
-	public function addUse(string $name, string $alias = null): self
+	public function addUse(string $name, string $alias = null, string $of = self::NAME_NORMAL): self
 	{
 		if (
 			!Helpers::isNamespaceIdentifier($name, true)
 			|| (Helpers::isIdentifier($name) && isset(Helpers::KEYWORDS[strtolower($name)]))
 		) {
-			throw new Nette\InvalidArgumentException("Value '$name' is not valid class name.");
+			throw new Nette\InvalidArgumentException("Value '$name' is not valid class/function/constant name.");
+
 		} elseif ($alias && (!Helpers::isIdentifier($alias) || isset(Helpers::KEYWORDS[strtolower($alias)]))) {
 			throw new Nette\InvalidArgumentException("Value '$alias' is not valid alias.");
 		}
 
 		$name = ltrim($name, '\\');
+		$uses = &$this->uses[$of];
 		if ($alias === null && $this->name === Helpers::extractNamespace($name)) {
 			$alias = Helpers::extractShortName($name);
 		}
@@ -111,26 +117,43 @@ final class PhpNamespace
 			do {
 				$alias = $base . $counter;
 				$counter++;
-			} while (isset($this->uses[$alias]) && $this->uses[$alias] !== $name);
+			} while (isset($uses[$alias]) && $uses[$alias] !== $name);
 
-		} elseif (isset($this->uses[$alias]) && $this->uses[$alias] !== $name) {
+		} elseif (isset($uses[$alias]) && $uses[$alias] !== $name) {
 			throw new InvalidStateException(
-				"Alias '$alias' used already for '{$this->uses[$alias]}', cannot use for '$name'."
+				"Alias '$alias' used already for '{$uses[$alias]}', cannot use for '$name'."
 			);
 		}
 
-		$this->uses[$alias] = $name;
-		asort($this->uses);
+		$uses[$alias] = $name;
+		asort($uses);
 		return $this;
 	}
 
 
-	/** @return string[] */
-	public function getUses(): array
+	/** @return static */
+	public function addUseFunction(string $name, string $alias = null): self
 	{
+		return $this->addUse($name, $alias, self::NAME_FUNCTION);
+	}
+
+
+	/** @return static */
+	public function addUseConstant(string $name, string $alias = null): self
+	{
+		return $this->addUse($name, $alias, self::NAME_CONSTANT);
+	}
+
+
+	/** @return string[] */
+	public function getUses(string $of = self::NAME_NORMAL): array
+	{
+		if ($of !== self::NAME_NORMAL) {
+			return $this->uses[$of];
+		}
 		$prefix = $this->name ? $this->name . '\\' : '';
 		$res = [];
-		foreach ($this->uses as $alias => $original) {
+		foreach ($this->uses[$of] as $alias => $original) {
 			if ($prefix . $alias !== $original) {
 				$res[$alias] = $original;
 			}
@@ -146,24 +169,34 @@ final class PhpNamespace
 	}
 
 
-	public function simplifyType(string $type): string
+	public function simplifyType(string $type, string $of = self::NAME_NORMAL): string
 	{
-		return preg_replace_callback('~[\w\x7f-\xff\\\\]+~', function ($m) { return $this->simplifyName($m[0]); }, $type);
+		return preg_replace_callback('~[\w\x7f-\xff\\\\]+~', function ($m) use ($of) { return $this->simplifyName($m[0], $of); }, $type);
 	}
 
 
-	public function simplifyName(string $name): string
+	public function simplifyName(string $name, string $of = self::NAME_NORMAL): string
 	{
 		if (isset(Helpers::KEYWORDS[strtolower($name)]) || $name === '') {
 			return $name;
 		}
 		$name = ltrim($name, '\\');
+
+		if ($of !== self::NAME_NORMAL) {
+			foreach ($this->uses[$of] as $alias => $original) {
+				if (strcasecmp($original, $name) === 0) {
+					return $alias;
+				}
+			}
+			return $this->simplifyName(Helpers::extractNamespace($name) . '\\') . Helpers::extractShortName($name);
+		}
+
 		$lower = strtolower($name);
 		$res = Strings::startsWith($lower, strtolower($this->name) . '\\')
 			? substr($name, strlen($this->name) + 1)
 			: null;
 
-		foreach ($this->uses as $alias => $original) {
+		foreach ($this->uses[$of] as $alias => $original) {
 			if (Strings::startsWith($lower . '\\', strtolower($original) . '\\')) {
 				$short = $alias . substr($name, strlen($original));
 				if (!isset($res) || strlen($res) > strlen($short)) {
@@ -172,7 +205,7 @@ final class PhpNamespace
 			}
 		}
 
-		return $res ?: ($this->name ? '\\' : '') . $name;
+		return $res ?? ($this->name ? '\\' : '') . $name;
 	}
 
 
