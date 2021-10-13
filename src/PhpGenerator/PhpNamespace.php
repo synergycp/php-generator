@@ -187,20 +187,28 @@ final class PhpNamespace
 			return $this->simplifyName(Helpers::extractNamespace($name) . '\\') . Helpers::extractShortName($name);
 		}
 
-		$res = self::startsWith($name, $this->name . '\\')
+		$shortest = null;
+		$sub = self::startsWith($name, $this->name . '\\')
 			? substr($name, strlen($this->name) + 1)
 			: null;
 
 		foreach ($this->uses[$of] as $alias => $original) {
+			if ($sub && self::startsWith($sub . '\\', $alias . '\\')) {
+				$sub = null;
+			}
 			if (self::startsWith($name . '\\', $original . '\\')) {
 				$short = $alias . substr($name, strlen($original));
-				if (!isset($res) || strlen($res) > strlen($short)) {
-					$res = $short;
+				if (!isset($shortest) || strlen($shortest) > strlen($short)) {
+					$shortest = $short;
 				}
 			}
 		}
 
-		return $res ?? ($this->name ? '\\' : '') . $name;
+		if (isset($shortest, $sub) && strlen($shortest) < strlen($sub)) {
+			return $sub;
+		}
+
+		return $sub ?? $shortest ?? ($this->name ? '\\' : '') . $name;
 	}
 
 
