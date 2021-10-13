@@ -107,9 +107,6 @@ final class PhpNamespace
 
 		$name = ltrim($name, '\\');
 		$uses = array_change_key_case($this->uses[$of]);
-		if ($alias === null && $this->name === Helpers::extractNamespace($name)) {
-			$alias = Helpers::extractShortName($name);
-		}
 		if ($alias === null) {
 			$base = Helpers::extractShortName($name);
 			$counter = null;
@@ -214,7 +211,7 @@ final class PhpNamespace
 		if ($name === null) {
 			throw new Nette\InvalidArgumentException('Class does not have a name.');
 		}
-		$this->addUse($this->name . '\\' . $name);
+		$this->addUse($this->name . '\\' . $name, $name);
 		unset($this->classes[self::findKey($this->classes, $name)]);
 		$this->classes[$name] = $class;
 		return $this;
